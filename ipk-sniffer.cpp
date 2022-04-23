@@ -199,7 +199,11 @@ void parse_args(int argc, char *argv[])
         {
             set = true;
             if (i + 1 < argc)
+            {
+                if (argv[i + 1][0] == '-')
+                    print_interfaces(interface_list);
                 interface = string(argv[i + 1]);
+            }
             else
                 print_interfaces(interface_list);
             check_existing_interface(interface, interface_list);
