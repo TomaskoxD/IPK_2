@@ -342,7 +342,7 @@ void print_packet_data(const void *addr, int len)
     int i;
     unsigned char buff[17];
     unsigned char *pc = (unsigned char *)addr;
-
+    printf("\n");
     for (int i = 0; i < len;)
     {
         int chrcnt = 0;
@@ -384,7 +384,7 @@ void print_packet_data(const void *addr, int len)
  */
 void print_ipv6(const struct in6_addr *addr)
 {
-    printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+    printf(" IP: %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
            (int)addr->s6_addr[0], (int)addr->s6_addr[1],
            (int)addr->s6_addr[2], (int)addr->s6_addr[3],
            (int)addr->s6_addr[4], (int)addr->s6_addr[5],
@@ -422,6 +422,78 @@ void print_formatted_time(const struct pcap_pkthdr *header)
 }
 
 /**
+ * @brief Print MAC address
+ *
+ * Function prints out source and destination MAC addresses from ethernet header
+ *
+ * @param ether_header struct ether_header
+ *
+ */
+void print_mac_address(const struct ether_header *ether_header)
+{
+    char macadd[20];
+    snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
+    printf("src MAC: %s\n", macadd);
+    snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
+    printf("dst MAC: %s\n", macadd);
+}
+
+/**
+ * @brief Print IPv4
+ *
+ * Function prints out IPv4 from ip struct
+ *
+ * @param ip ip struct
+ *
+ */
+void print_ipv4(struct ip *ip)
+{
+    printf("src IP: %s\n", inet_ntoa(ip->ip_src));
+    printf("dst IP: %s\n", inet_ntoa(ip->ip_dst));
+}
+
+/**
+ * @brief Print UDP port
+ *
+ * Function prints out souce and destination UDP ports
+ *
+ * @param udp_hdr struct udp_hdr
+ *
+ */
+void print_udp_port(const struct udphdr *udp_hdr)
+{
+    printf("src port: %d\n", ntohs(udp_hdr->uh_sport));
+    printf("dst port: %d\n", ntohs(udp_hdr->uh_dport));
+}
+
+/**
+ * @brief Print TCP port
+ *
+ * Function prints out souce and destination TCP ports
+ *
+ * @param tcp_hdr struct tcp_hdr
+ *
+ */
+void print_tcp_port(const struct tcphdr *tcp_hdr)
+{
+    printf("src port: %d\n", ntohs(tcp_hdr->th_sport));
+    printf("dst port: %d\n", ntohs(tcp_hdr->th_dport));
+}
+
+/**
+ * @brief Print packet length
+ *
+ * Function prints out frame length
+ *
+ * @param len length of packet
+ *
+ */
+void print_length(int len)
+{
+    printf("frame length: %d bytes\n", len);
+}
+
+/**
  * @brief Sniff packets
  *
  * Function sniffs for packet and prints its contents. First correct values are assigned to structs like ip, iphdr, ip6_hdr, ether_header, udphdr, tcphdr. Then using switch correct protocol is found and processed.
@@ -449,8 +521,6 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     ip6_hdr = (struct ip6_hdr *)(packet + sizeof(struct ether_header));
     ether_header = (struct ether_header *)packet;
 
-    char macadd[20];
-
     switch (ntohs(ether_header->ether_type))
     {
     case ETHERTYPE_IP: // IPv4 protocol
@@ -459,43 +529,29 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         case IPPROTO_ICMP: // ICMPv4
             printf("ICMP\n");
             print_formatted_time(header);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: %s\n", inet_ntoa(ip->ip_src));
-            printf("dst IP: %s\n", inet_ntoa(ip->ip_dst));
+            print_mac_address(ether_header);
+            print_length(header->len);
+            print_ipv4(ip);
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_TCP: // TCP
             printf("TCP\n");
             print_formatted_time(header);
             tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + ip->ip_hl * 4);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: %s\n", inet_ntoa(ip->ip_src));
-            printf("dst IP: %s\n", inet_ntoa(ip->ip_dst));
-            printf("src port: %d\n", ntohs(tcp_hdr->th_sport));
-            printf("dst port: %d\n\n", ntohs(tcp_hdr->th_dport));
+            print_mac_address(ether_header);
+            print_length(header->len);
+            print_ipv4(ip);
+            print_tcp_port(tcp_hdr);
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_UDP: // UDP
             printf("UDP\n");
             print_formatted_time(header);
             udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + ip->ip_hl * 4);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: %s\n", inet_ntoa(ip->ip_src));
-            printf("dst IP: %s\n", inet_ntoa(ip->ip_dst));
-            printf("src port: %d\n", ntohs(udp_hdr->uh_sport));
-            printf("dst port: %d\n\n", ntohs(udp_hdr->uh_dport));
+            print_mac_address(ether_header);
+            print_length(header->len);
+            print_ipv4(ip);
+            print_udp_port(udp_hdr);
             print_packet_data(packet, header->len);
             break;
         default:
@@ -509,49 +565,37 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             printf("TCP - IPv6\n");
             print_formatted_time(header);
             tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + sizeof(ip6_hdr));
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: ");
+            print_mac_address(ether_header);
+            print_length(header->len);
+            printf("src");
             print_ipv6(&ip6_hdr->ip6_src);
-            printf("dst IP: ");
+            printf("dst");
             print_ipv6(&ip6_hdr->ip6_dst);
-            printf("src port: %d\n", ntohs(tcp_hdr->th_sport));
-            printf("dst port: %d\n\n", ntohs(tcp_hdr->th_dport));
+            print_tcp_port(tcp_hdr);
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_UDP: // UDPv6
             printf("UDP - IPv6\n");
             print_formatted_time(header);
             udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + sizeof(ip6_hdr));
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: ");
+            print_mac_address(ether_header);
+            print_length(header->len);
+            printf("src");
             print_ipv6(&ip6_hdr->ip6_src);
-            printf("dst IP: ");
+            printf("dst");
             print_ipv6(&ip6_hdr->ip6_dst);
-            printf("src port: %d\n", ntohs(udp_hdr->uh_sport));
-            printf("dst port: %d\n\n", ntohs(udp_hdr->uh_dport));
+            print_udp_port(udp_hdr);
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_ICMPV6: // ICMPv6
             printf("ICMPv6\n");
             print_formatted_time(header);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-            printf("src MAC: %s\n", macadd);
-            snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-            printf("dst MAC: %s\n", macadd);
-            printf("frame length: %d bytes\n", header->len);
-            printf("src IP: ");
+            print_mac_address(ether_header);
+            print_length(header->len);
+            printf("src");
             print_ipv6(&ip6_hdr->ip6_src);
-            printf("dst IP: ");
+            printf("dst");
             print_ipv6(&ip6_hdr->ip6_dst);
-            printf("\n");
             print_packet_data(packet, header->len);
             break;
         default:
@@ -561,13 +605,9 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     case ETHERTYPE_ARP: // ARP
         printf("ARP\n");
         print_formatted_time(header);
-        snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-        printf("src MAC: %s\n", macadd);
-        snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-        printf("dst MAC: %s\n", macadd);
-        printf("frame length: %d bytes\n", header->len);
-        printf("src IP: %s\n", inet_ntoa(ip->ip_src));
-        printf("dst IP: %s\n\n", inet_ntoa(ip->ip_dst));
+        print_mac_address(ether_header);
+        print_length(header->len);
+        print_ipv4(ip);
         print_packet_data(packet, header->len);
         break;
     }
