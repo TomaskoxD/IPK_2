@@ -378,6 +378,23 @@ void print_packet_data(const void *addr, int len)
 }
 
 /**
+ * @brief Print arp IP address
+ *
+ * Function prints IP address in arp packet
+ *
+ * @param addr pointer to ip address
+ *
+ *
+ */
+void print_arp_ip(const void *addr)
+{
+    unsigned char *pc = (unsigned char *)addr;
+
+    printf("src IP: %d.%d.%d.%d\n", pc[28], pc[29], pc[30], pc[31]);
+    printf("dst IP: %d.%d.%d.%d\n", pc[38], pc[39], pc[40], pc[41]);
+}
+
+/**
  * @brief Print IPv6
  *
  * Function prints IPv6 address in correct format
@@ -430,16 +447,24 @@ void print_formatted_time(const struct pcap_pkthdr *header)
  *
  * Function prints out source and destination MAC addresses from ethernet header
  *
+ * @copyright https://stackoverflow.com/questions/4526576/how-do-i-capture-mac-address-of-access-points-and-hosts-connected-to-it
  * @param ether_header struct ether_header
  *
  */
 void print_mac_address(const struct ether_header *ether_header)
 {
-    char macadd[20];
-    snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_shost));
-    printf("src MAC: %s\n", macadd);
-    snprintf(macadd, 20, "%s", ether_ntoa((struct ether_addr *)ether_header->ether_dhost));
-    printf("dst MAC: %s\n", macadd);
+    printf("src MAC: ");
+    for (int i = 0; i <= 4; i++)
+    {
+        printf("%02x:", ether_header->ether_shost[i]);
+    }
+    printf("%02x\n", ether_header->ether_shost[5]);
+    printf("dst MAC: ");
+    for (int i = 0; i <= 4; i++)
+    {
+        printf("%02x:", ether_header->ether_dhost[i]);
+    }
+    printf("%02x\n", ether_header->ether_dhost[5]);
 }
 
 /**
@@ -505,7 +530,6 @@ void print_length(int len)
  * Protocol found is then printed by printing time packet was catched, souce and destination MAC addresses, frame length, source and destionation IP address and then formatted data.
  *
  * @copyright https://www.tcpdump.org/other/sniffex.c
- * @copyright https://stackoverflow.com/questions/4526576/how-do-i-capture-mac-address-of-access-points-and-hosts-connected-to-it
  * @param args pointer to args
  * @param header pointer to struct header
  * @param packet pointer to packet
@@ -519,10 +543,12 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
     const struct ether_header *ether_header; // ethernet struct
     const struct udphdr *udp_hdr;            // UDP struct
     const struct tcphdr *tcp_hdr;            // TCP struct
+    // const struct arp_header *arp_hrd;
 
     ip = (struct ip *)(packet + sizeof(struct ether_header));
     ip_hdr = (struct iphdr *)(packet + sizeof(struct ether_header));
     ip6_hdr = (struct ip6_hdr *)(packet + sizeof(struct ether_header));
+    // arp_hrd = (struct ether_header *)packet;
     ether_header = (struct ether_header *)packet;
 
     switch (ntohs(ether_header->ether_type))
@@ -568,7 +594,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         case IPPROTO_TCP: // TCPv6
             printf("TCP - IPv6\n");
             print_formatted_time(header);
-            tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + sizeof(ip6_hdr));
+            tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + 40);
             print_mac_address(ether_header);
             print_length(header->len);
             printf("src");
@@ -581,7 +607,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         case IPPROTO_UDP: // UDPv6
             printf("UDP - IPv6\n");
             print_formatted_time(header);
-            udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + sizeof(ip6_hdr));
+            udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + 40);
             print_mac_address(ether_header);
             print_length(header->len);
             printf("src");
@@ -611,7 +637,10 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         print_formatted_time(header);
         print_mac_address(ether_header);
         print_length(header->len);
-        print_ipv4(ip);
+        // printf("src IP: %s\n", arp_hrd);
+        // printf("dst IP: %d\n", ip->ip_dst.s_addr);
+        // print_ipv4(ip);
+        print_arp_ip(packet);
         print_packet_data(packet, header->len);
         break;
     }
