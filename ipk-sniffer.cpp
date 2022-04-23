@@ -435,7 +435,7 @@ void print_formatted_time(const struct pcap_pkthdr *header)
  * @param packet pointer to packet
  *
  */
-void PacketSniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
     struct ip *ip;                           // IP
     const struct iphdr *ip_hdr;              // IP header
@@ -551,6 +551,7 @@ void PacketSniffer(u_char *args, const struct pcap_pkthdr *header, const u_char 
             print_ipv6(&ip6_hdr->ip6_src);
             printf("dst IP: ");
             print_ipv6(&ip6_hdr->ip6_dst);
+            printf("\n");
             print_packet_data(packet, header->len);
             break;
         default:
@@ -582,7 +583,6 @@ void PacketSniffer(u_char *args, const struct pcap_pkthdr *header, const u_char 
  */
 void catch_sigint(int signal)
 {
-
     printf("\nSIGINT detected... Shutting down sniffer...\n");
     pcap_close(device);
     pcap_freecode(&filter_compiled);
@@ -630,7 +630,7 @@ int main(int argc, char *argv[])
         pcap_freecode(&filter_compiled);
         print_error_and_exit("ERROR: Filter set failure.\n");
     }
-    if (pcap_loop(device, packet_process_count, PacketSniffer, NULL) == PCAP_ERROR)
+    if (pcap_loop(device, packet_process_count, sniffer, NULL) == PCAP_ERROR)
     {
         pcap_close(device);
         print_error_and_exit("ERROR: Failure during processing packets.\n");
