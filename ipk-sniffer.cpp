@@ -685,11 +685,11 @@ int main(int argc, char *argv[])
 
     if ((device = pcap_open_live(interface.c_str(), 65535, 1, 1000, error_buffer)) == NULL)
     {
-        pcap_close(device);
         print_error_and_exit("ERROR: Failure during opening device.\n");
     }
     if (pcap_lookupnet(interface.c_str(), &ip, &mask, error_buffer) == PCAP_ERROR)
     {
+        pcap_close(device);
         print_error_and_exit("ERROR: Network can not be found.\n");
     }
     if (pcap_compile(device, &filter_compiled, filter.c_str(), 0, mask) == PCAP_ERROR)
@@ -715,7 +715,7 @@ int main(int argc, char *argv[])
 }
 /*
     Code is inspired by this examples https://www.tcpdump.org/other/sniffex.c // mainly for filters
-                                      https://www.tcpdump.org/pcap.html 
+                                      https://www.tcpdump.org/pcap.html
                                       https://www.binarytides.com/packet-sniffer-code-c-libpcap-linux-sockets/ // for processing packet
 
  * sniffex.c
