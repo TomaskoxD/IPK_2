@@ -530,6 +530,7 @@ void print_length(int len)
  * Protocol found is then printed by printing time packet was catched, souce and destination MAC addresses, frame length, source and destionation IP address and then formatted data.
  *
  * @copyright https://www.tcpdump.org/other/sniffex.c
+ * @copyright https://www.binarytides.com/packet-sniffer-code-c-libpcap-linux-sockets/
  * @param args pointer to args
  * @param header pointer to struct header
  * @param packet pointer to packet
@@ -713,7 +714,9 @@ int main(int argc, char *argv[])
     return 0;
 }
 /*
-    Code is inspired by this examples https://www.tcpdump.org/other/sniffex.c https://www.tcpdump.org/pcap.html
+    Code is inspired by this examples https://www.tcpdump.org/other/sniffex.c // mainly for filters
+                                      https://www.tcpdump.org/pcap.html 
+                                      https://www.binarytides.com/packet-sniffer-code-c-libpcap-linux-sockets/ // for processing packet
 
  * sniffex.c
  *
