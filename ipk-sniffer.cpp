@@ -558,7 +558,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         switch (ip_hdr->protocol)
         {
         case IPPROTO_ICMP: // ICMPv4
-            printf("ICMP\n");
+            // printf("ICMP\n");
             print_formatted_time(header);
             print_mac_address(ether_header);
             print_length(header->len);
@@ -566,7 +566,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_TCP: // TCP
-            printf("TCP\n");
+            // printf("TCP\n");
             print_formatted_time(header);
             tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + ip->ip_hl * 4);
             print_mac_address(ether_header);
@@ -576,7 +576,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_UDP: // UDP
-            printf("UDP\n");
+            // printf("UDP\n");
             print_formatted_time(header);
             udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + ip->ip_hl * 4);
             print_mac_address(ether_header);
@@ -593,7 +593,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         switch (ip6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt)
         {
         case IPPROTO_TCP: // TCPv6
-            printf("TCP - IPv6\n");
+            // printf("TCP - IPv6\n");
             print_formatted_time(header);
             tcp_hdr = (struct tcphdr *)(packet + sizeof(struct ether_header) + 40);
             print_mac_address(ether_header);
@@ -606,7 +606,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_UDP: // UDPv6
-            printf("UDP - IPv6\n");
+            // printf("UDP - IPv6\n");
             print_formatted_time(header);
             udp_hdr = (struct udphdr *)(packet + sizeof(struct ether_header) + 40);
             print_mac_address(ether_header);
@@ -619,7 +619,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
             print_packet_data(packet, header->len);
             break;
         case IPPROTO_ICMPV6: // ICMPv6
-            printf("ICMPv6\n");
+            // printf("ICMPv6\n");
             print_formatted_time(header);
             print_mac_address(ether_header);
             print_length(header->len);
@@ -634,7 +634,7 @@ void sniffer(u_char *args, const struct pcap_pkthdr *header, const u_char *packe
         }
         break;
     case ETHERTYPE_ARP: // ARP
-        printf("ARP\n");
+        // printf("ARP\n");
         print_formatted_time(header);
         print_mac_address(ether_header);
         print_length(header->len);
